@@ -12,3 +12,11 @@ dependencies = []
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
+
+# Required by Frappe Cloud's dependency resolver before it will build/deploy
+# this app — the "Intan Procurement" bench group is confirmed Frappe Version
+# 16, so this pins to the v15-v17 range for safety margin (the override in
+# this app only touches Document.submit()/auto_created_via_reorder, which
+# has been stable across those versions, so no need to pin tighter).
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0,<18.0.0"
