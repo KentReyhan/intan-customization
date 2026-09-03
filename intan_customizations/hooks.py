@@ -22,3 +22,18 @@ app_license = "mit"
 extend_doctype_class = {
     "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"]
 }
+
+# 2026-09-03: Frappe's own "Notification" doctype (channel="System
+# Notification", receiver_by_role) confirmed live to only ever notify the
+# acting user, never other role-holders — see
+# overrides/notifications.py's module docstring for the full story. These
+# hooks create the Notification Log directly instead.
+doc_events = {
+    "Purchase Order": {
+        "on_update": "intan_customizations.overrides.notifications.notify_on_workflow_state_change",
+        "on_submit": "intan_customizations.overrides.notifications.notify_po_approved",
+    },
+    "Material Request": {
+        "on_update": "intan_customizations.overrides.notifications.notify_on_workflow_state_change",
+    },
+}

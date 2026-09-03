@@ -117,6 +117,44 @@ Once steps 3–4 are confirmed, let Claude know so `docs/Open-Questions.md`
 already-made decision to leave them as evidence; see
 `dev/phase2_config/reorder_mr_draft_sweeper.py` if that decision changes.
 
+## Updating an already-installed app (2026-09-03: notification fix)
+
+The app is already installed on production — this is a code update, not a
+fresh install, so skip `bench get-app`/`install-app` and just pull the new
+commit onto the already-cloned app.
+
+**From your Mac** (in `bench_apps/intan_customizations`):
+```bash
+git add .
+git commit -m "add: direct Notification Log creation for role-based workflow-stage notifications"
+git push origin main
+```
+
+**Over the same SSH session as before** (`ssh <bench-group-name>@<region>.frappe.cloud -p 2222`):
+```bash
+cd frappe-bench/apps/intan_customizations
+git pull origin main
+cd ../..
+bench --site production-intan-chemical.j.frappe.cloud migrate
+bench restart
+```
+
+### Verify it worked
+
+Push any real Purchase Order into "Pending Finance AP Approval" (or watch
+the next real one happen), then check as a user who is NOT the one who
+performed the action:
+```bash
+bench --site production-intan-chemical.j.frappe.cloud console
+```
+```python
+>>> frappe.get_all("Notification Log", filters={"for_user": "financeap@example.com"}, fields=["subject", "creation"], order_by="creation desc", limit=5)
+```
+Expect a fresh entry with subject `"Purchase Order <name> awaiting your
+approval"`. If nothing shows up, check `bench --site production-intan-chemical.j.frappe.cloud
+console`'s error output for exceptions from `notify_on_workflow_state_change` —
+report back what you see.
+
 ## Caveat: this may not survive a future Frappe Cloud dashboard deploy
 
 Frappe Cloud's supported way to add an app to a private bench group is
