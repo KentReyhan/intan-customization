@@ -19,6 +19,15 @@ app_license = "mit"
 # fully replacing the class, so it can't clobber another app's override of
 # Material Request (confirmed none exists in erpnext's own hooks.py anyway,
 # but this is safer regardless).
+# Importing this applies its monkeypatch as a side effect (wraps
+# erpnext.stock.reorder_item.create_material_request to set
+# frappe.flags.in_reorder_job around its own insert()+submit() call — see
+# overrides/reorder_item_patch.py and material_request.py's submit()
+# override for why). hooks.py is guaranteed to be imported for every app on
+# every worker/request, so this runs before any scheduled job or REST call
+# can reach reorder_item.create_material_request.
+from intan_customizations.overrides import reorder_item_patch  # noqa: F401
+
 extend_doctype_class = {
-    "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"]
+    "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"],
 }

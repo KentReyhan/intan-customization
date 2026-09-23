@@ -23,10 +23,23 @@ Procurement" bench group is Frappe **Version 16**, where
 `extend_doctype_class` is the recommended hook: it composes as a mixin
 ahead of the real controller instead of fully replacing the class). It
 makes `submit()` a no-op when `auto_created_via_reorder` is set (ERPNext's
-own native field). A hook that *raises* to block the submit would roll back
-the entire MR — ERPNext wraps `insert()` + `submit()` in one try/except
-with a savepoint — so this has to silently skip instead. Human-submitted
-MRs are untouched.
+own native field) **and** the call is coming from the reorder job itself. A
+hook that *raises* to block the submit would roll back the entire MR —
+ERPNext wraps `insert()` + `submit()` in one try/except — so this has to
+silently skip instead.
+
+**Found live 2026-09-23**: gating the no-op on the field alone (not who's
+calling) also permanently blocked a Director's *later* legitimate Approve
+action on the same MR — Approve calls the exact same `submit()`, and the
+field never gets unset, so every auto-reorder-created MR was stuck in
+"Pending Approval" forever, with no way to approve it
+(`MAT-MR-2026-00039`/`00040`/`00041`). Fixed by
+`overrides/reorder_item_patch.py`, which wraps ERPNext's own
+`erpnext.stock.reorder_item.create_material_request` (the one place that
+calls `mr.insert()` + `mr.submit()`) to set `frappe.flags.in_reorder_job`
+only for the duration of that call. `submit()` now only no-ops when *both*
+the field is set *and* that flag is set — a Director approving later, in a
+separate request with the flag unset, submits normally.
 
 ## Deploy
 

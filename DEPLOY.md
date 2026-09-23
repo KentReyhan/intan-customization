@@ -139,6 +139,20 @@ bench --site production-intan-chemical.j.frappe.cloud migrate
 bench restart
 ```
 
+**2026-09-23 fix — verify after this specific update**: once deployed,
+confirm a Director can now actually approve an MR stuck from the earlier
+bug. Easiest via Desk UI: open `MAT-MR-2026-00039` (or `00040`/`00041`) as
+the Director user and click Approve — it should move to `workflow_state=
+"Approved"`, `docstatus=1`, and *stay* there on reload (not bounce back to
+"Pending Approval"). If you'd rather verify from a console first:
+```python
+>>> from intan_customizations.overrides import reorder_item_patch
+>>> import erpnext.stock.reorder_item as ri
+>>> ri.create_material_request.__name__
+```
+Expect `'_create_material_request_marking_reorder_job'`, not
+`'create_material_request'` — confirms the monkeypatch applied.
+
 Note: this bench group's own deploy step has been observed to commit
 compiled `__pycache__/*.pyc` files into this repo as a side effect — those
 are harmless but shouldn't be treated as real changes when reviewing
