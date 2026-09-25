@@ -44,7 +44,7 @@
     }
 
     function build_row_fields(item) {
-        var $wrap = $('<div class="row intan-custom-fields" style="margin-top:6px;margin-bottom:6px;"></div>');
+        var $wrap = $('<div class="row intan-custom-fields" style="margin-top:6px;margin-bottom:48px;"></div>');
         CUSTOM_FIELDS.forEach(function (pair) {
             var fieldname = pair[0];
             var label = pair[1];
@@ -79,9 +79,13 @@
             // Bottom padding + a separator so each item (original Qty/Rate
             // row plus our appended fields) reads as one visually distinct
             // block instead of running into the next item — requested
-            // directly by the user 2026-09-25, after the first version
-            // rendered with no breathing room between items.
-            $(this).css({ 'padding-bottom': '20px', 'border-bottom': '1px solid #e5e5e5', 'margin-bottom': '10px' });
+            // directly by the user 2026-09-25. First attempt (20px on
+            // .rfq-item alone) wasn't visibly enough, per live feedback —
+            // 48px now, applied on BOTH .rfq-item's own padding-bottom AND
+            // as margin-bottom on the custom-fields block itself (the
+            // actual last child), so it doesn't depend on .rfq-item's own
+            // padding rendering as expected.
+            $(this).css({ 'padding-bottom': '48px', 'border-bottom': '1px solid #e5e5e5', 'margin-bottom': '10px' });
             $(this).append(build_row_fields(item));
         });
     }
