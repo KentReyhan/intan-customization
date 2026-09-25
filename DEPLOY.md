@@ -136,8 +136,13 @@ cd frappe-bench/apps/intan_customizations
 git pull origin main
 cd ../..
 bench --site production-intan-chemical.j.frappe.cloud migrate
+bench build --app intan_customizations
 bench restart
 ```
+`bench build` is only needed starting with the **2026-09-25 update** below
+(the first one to add a static JS asset under `public/js/` — earlier
+updates were Python-only and didn't need it). Skip it for a pure-Python
+change; it doesn't hurt to always include it, just adds time.
 
 **2026-09-23 fix — verify after this specific update**: once deployed,
 confirm a Director can now actually approve an MR stuck from the earlier
@@ -152,6 +157,47 @@ the Director user and click Approve — it should move to `workflow_state=
 ```
 Expect `'_create_material_request_marking_reorder_job'`, not
 `'create_material_request'` — confirms the monkeypatch applied.
+
+**2026-09-25 update — verify after this specific update**: adds the 9
+free-text supplier-quote fields (product name, CAS number, MOQ, price,
+incoterm, payment term, stock ready/not, lead time, important note) to the
+built-in Supplier Portal's `/rfq/<name>` page — a server-side monkeypatch
+(`overrides/rfq_item_custom_fields_patch.py`) plus a client-side JS
+injection (`public/js/rfq_portal_custom_fields.js`, loaded via the new
+`web_include_js` hook). **This is the one piece of this whole feature I
+could not verify myself** — everything else (the fields on Supplier
+Quotation Item, the Web Form, the permissions) was tested live via REST
+and Playwright; this part only exists on the code side of the SSH
+boundary, so it needs a real check after deploying:
+
+1. Confirm the JS asset actually built and is reachable:
+   ```bash
+   curl -sI https://production-intan-chemical.j.frappe.cloud/assets/intan_customizations/js/rfq_portal_custom_fields.js
+   ```
+   Expect `HTTP/2 200`, not 404 — a 404 almost always means `bench build`
+   was skipped or didn't pick up the new file.
+2. Open any submitted RFQ's portal link as a real supplier login (or an
+   admin-token-injected browser context, same technique used throughout
+   this session — see `dev/e2e/lib/login.ts`'s pattern) at
+   `/rfq/<name>`. Each item row should now show 9 extra labeled input
+   boxes below the existing Qty/Rate inputs. If they don't appear, check
+   the browser console for a JS error first (most likely cause: the script
+   ran before `window.doc`/`.rfq-item` rows existed — see the file's own
+   comment about the 200ms delay, which may need lengthening on a slower
+   page load) before assuming the deploy itself failed.
+3. Fill in a few of the new fields, then click "Make Quotation." Once
+   redirected to `/supplier-quotations/<new SQ name>`, confirm via REST
+   (or the Desk UI) that the new Supplier Quotation Item row actually has
+   those values saved — that's the server-side patch's job, and it's a
+   separate failure mode from #2 (the inputs rendering ≠ the values
+   persisting). If the console showed `_create_rfq_items_with_custom_
+   fields` was never installed, double check step 3's console check below.
+4. Console check that the server-side patch is actually loaded:
+   ```python
+   >>> import erpnext.buying.doctype.request_for_quotation.request_for_quotation as ri
+   >>> ri.create_rfq_items.__name__
+   ```
+   Expect `'_create_rfq_items_with_custom_fields'`, not `'create_rfq_items'`.
 
 Note: this bench group's own deploy step has been observed to commit
 compiled `__pycache__/*.pyc` files into this repo as a side effect — those
