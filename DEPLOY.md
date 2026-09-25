@@ -175,7 +175,16 @@ boundary, so it needs a real check after deploying:
    curl -sI https://production-intan-chemical.j.frappe.cloud/assets/intan_customizations/js/rfq_portal_custom_fields.js
    ```
    Expect `HTTP/2 200`, not 404 — a 404 almost always means `bench build`
-   was skipped or didn't pick up the new file.
+   was skipped or didn't pick up the new file. **This alone isn't
+   sufficient** — confirmed live 2026-09-25 that this can pass while the
+   feature is still completely broken: the asset itself built fine, but
+   `web_include_js`'s first deploy used a bare filename instead of the
+   full `/assets/intan_customizations/js/...` path, so the page's actual
+   `<script src="rfq_portal_custom_fields.js">` tag resolved against the
+   *current page's own URL* instead and 404'd differently. Also check the
+   real page's rendered HTML (view-source or dev tools) for a `<script
+   src="/assets/intan_customizations/js/rfq_portal_custom_fields.js">`
+   tag specifically — not just that the asset responds on its own.
 2. Open any submitted RFQ's portal link as a real supplier login (or an
    admin-token-injected browser context, same technique used throughout
    this session — see `dev/e2e/lib/login.ts`'s pattern) at

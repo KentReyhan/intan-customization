@@ -43,7 +43,17 @@ from intan_customizations.overrides import rfq_item_custom_fields_patch  # noqa:
 # portal page (guarded internally to only act on /rfq/<name>), which is a
 # documented, unambiguous Frappe hook — unlike overriding a shared
 # template path, there's no cross-app precedence question here.
-web_include_js = "rfq_portal_custom_fields.js"
+#
+# MUST be the full /assets/<app>/js/<file> path, not a bare filename —
+# confirmed live 2026-09-25 (first deploy of this feature): a bare
+# filename here renders as <script src="rfq_portal_custom_fields.js">,
+# resolved by the browser against the CURRENT PAGE's own URL
+# (/rfq/<name>), not against /assets/, so it 404s and the browser refuses
+# to execute the HTML error page it gets back instead ("Refused to
+# execute script ... MIME type ('text/html') is not executable"). Unlike
+# app_include_js (Desk app), web_include_js does not appear to prefix a
+# bare filename with /assets/<app>/js/ automatically.
+web_include_js = "/assets/intan_customizations/js/rfq_portal_custom_fields.js"
 
 extend_doctype_class = {
     "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"],
