@@ -76,6 +76,12 @@
         $('.rfq-item').each(function (i) {
             var item = window.doc.items[i];
             if (!item) return;
+            // Bottom padding + a separator so each item (original Qty/Rate
+            // row plus our appended fields) reads as one visually distinct
+            // block instead of running into the next item — requested
+            // directly by the user 2026-09-25, after the first version
+            // rendered with no breathing room between items.
+            $(this).css({ 'padding-bottom': '20px', 'border-bottom': '1px solid #e5e5e5', 'margin-bottom': '10px' });
             $(this).append(build_row_fields(item));
         });
     }
