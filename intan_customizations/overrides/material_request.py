@@ -1,5 +1,29 @@
+import sys
+
 import frappe
 from frappe.model.document import Document
+
+
+def _called_from_reorder_job():
+    # Found live 2026-10-01 (MAT-MR-2026-00046 landed docstatus=1/Approved when
+    # the reorder job was run manually): frappe.flags.in_reorder_job is set by
+    # reorder_item_patch.py, a monkeypatch applied as a side effect of importing
+    # hooks.py — but Frappe only imports hooks.py on an app_hooks CACHE MISS
+    # (frappe.get_hooks caches the loaded hooks in Redis outside developer
+    # mode), so a worker started while that cache is warm never applies the
+    # patch and the flag is never set. This module, by contrast, is always
+    # imported (it's the extend_doctype_class target), so detect the caller
+    # directly instead of relying on the patch: walk the stack for ERPNext's own
+    # create_material_request().
+    frame = sys._getframe(2)
+    while frame:
+        if (
+            frame.f_code.co_name == "create_material_request"
+            and frame.f_globals.get("__name__") == "erpnext.stock.reorder_item"
+        ):
+            return True
+        frame = frame.f_back
+    return False
 
 
 class MaterialRequestMixin(Document):
@@ -25,6 +49,6 @@ class MaterialRequestMixin(Document):
         # create_material_request() call, so this only no-ops the job's
         # submit — a human approving via the workflow later goes through
         # normally.
-        if self.auto_created_via_reorder and frappe.flags.get("in_reorder_job"):
+        if self.auto_created_via_reorder and (frappe.flags.get("in_reorder_job") or _called_from_reorder_job()):
             return
         super().submit()
