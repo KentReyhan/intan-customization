@@ -55,6 +55,12 @@ from intan_customizations.overrides import rfq_item_custom_fields_patch  # noqa:
 # bare filename with /assets/<app>/js/ automatically.
 web_include_js = "/assets/intan_customizations/js/rfq_portal_custom_fields.js"
 
+# Desk-side (logged-in) script: hides the Buying sidebar's per-team accordion
+# headers the viewer's roles don't belong to — see public/js/
+# sidebar_team_groups.js's own header (2026-10-01). Full /assets path, same
+# reason as web_include_js above.
+app_include_js = "/assets/intan_customizations/js/sidebar_team_groups.js"
+
 extend_doctype_class = {
     "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"],
     # Server-side backstop for the Sample QC submit gate — the Client Script
