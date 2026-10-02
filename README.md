@@ -70,7 +70,7 @@ Two pieces, both required together:
   hook, injects the 9 input fields into each item row on `/rfq/<name>` via
   DOM manipulation and keeps them in sync with the same `window.doc`
   object ERPNext's own `rfq.js` already maintains for qty/rate.
-- `public/js/sidebar_team_groups.js` — shipped via the `app_include_js` hook
+- `public/js/sidebar_team_groups_v2.js` — shipped via the `app_include_js` hook
   (Desk, logged-in users). Hides the Buying sidebar's per-team accordion
   headers (Stock Control / Procurement / Eksim / Finance AP & Director) for
   viewers whose roles don't belong to that team (2026-10-01; one team per group
@@ -83,6 +83,10 @@ Two pieces, both required together:
   file in the browser as each of the five role accounts, including across
   in-app navigation; the permanent regression spec is
   `dev/e2e/tests/03-sidebar-team-groups.spec.ts` (fails until deployed).
+  **Cache gotcha:** Frappe Cloud's proxy caches `/assets/*` for a year keyed by
+  URL alone (and Desk adds no `?ver=`), so editing a JS file in place leaves real
+  browsers on the old copy — rename it (`_v2` -> `_v3`) and update `hooks.py`
+  whenever it changes. The same applies to `rfq_portal_custom_fields.js`.
 
 Deliberately **not** implemented by overriding ERPNext's shipped
 `rfq_items.html`/`rfq.js` templates directly, even though that would look

@@ -59,7 +59,15 @@ web_include_js = "/assets/intan_customizations/js/rfq_portal_custom_fields.js"
 # headers the viewer's roles don't belong to — see public/js/
 # sidebar_team_groups.js's own header (2026-10-01). Full /assets path, same
 # reason as web_include_js above.
-app_include_js = "/assets/intan_customizations/js/sidebar_team_groups.js"
+#
+# CACHE-BUSTING (found live 2026-10-02): Frappe Cloud's proxy serves /assets/*
+# with `Cache-Control: max-age=31536000, immutable` and caches it (x-proxy-cache:
+# HIT) keyed by URL alone — and Frappe adds no ?ver= to app_include_js. After a
+# redeploy, real browsers kept getting the PREVIOUS file for the same path
+# (curl, which sends different Accept-Encoding, got the new one — so a plain
+# download check lied). So WHENEVER this JS changes, give it a NEW FILENAME
+# (…_v2.js -> …_v3.js) and update this line; never edit it in place.
+app_include_js = "/assets/intan_customizations/js/sidebar_team_groups_v2.js"
 
 extend_doctype_class = {
     "Material Request": ["intan_customizations.overrides.material_request.MaterialRequestMixin"],
