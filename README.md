@@ -73,7 +73,9 @@ Two pieces, both required together:
 - `public/js/sidebar_team_groups.js` — shipped via the `app_include_js` hook
   (Desk, logged-in users). Hides the Buying sidebar's per-team accordion
   headers (Stock Control / Procurement / Eksim / Finance AP & Director) for
-  viewers whose roles don't belong to that team (2026-10-01). Cosmetic only —
+  viewers whose roles don't belong to that team (2026-10-01; one team per group
+  since 2026-10-02 — Purchasing -> Stock Control, Procurement Manager ->
+  Procurement, Eksim -> Eksim, Finance AP -> Finance AP & Director, Director -> all). Cosmetic only —
   Frappe's own permission checks still decide which links are visible; fails
   open if roles can't be read. Role map lives at the top of the file; keep its
   group labels in sync with `BUYING_SIDEBAR_TEAM_GROUPS` in intan-chem-erp's

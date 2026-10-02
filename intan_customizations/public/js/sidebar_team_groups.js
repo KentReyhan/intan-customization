@@ -19,10 +19,14 @@
 // intan-chem-erp. A group label not listed here is never touched.
 
 (function () {
+    // One team per group (user, 2026-10-02: a Procurement Manager should not see
+    // the Stock Control / Eksim groups). Director sees all four. NB: Stock User is
+    // deliberately NOT listed for Stock Control — the Procurement Manager account
+    // also holds it, which would show them that group.
     var GROUP_ROLES = {
-        "Stock Control": ["Purchasing", "Procurement Manager", "Stock User", "Stock Manager", "Director"],
-        "Procurement": ["Procurement Manager", "Purchasing", "Director"],
-        "Eksim": ["Eksim", "Procurement Manager", "Director"],
+        "Stock Control": ["Purchasing", "Director"],
+        "Procurement": ["Procurement Manager", "Director"],
+        "Eksim": ["Eksim", "Director"],
         "Finance AP & Director": ["Finance AP", "Director"],
     };
     // Always see every group (admin accounts).
